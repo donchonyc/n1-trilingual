@@ -130,6 +130,8 @@ js/data/deck.js         N1 high-frequency deck import (575 words)
 js/data/deck-full.js    full N1 deck bulk import (3,409 machine-assisted words)
 js/data/reading.js      N1 reading passages & questions (original)
 js/app.js               navigation, rendering, quiz engine, SRS, storage
+api/state.js            Vercel serverless state API (private Vercel Blob)
+vercel.json             Vercel function/config
 scripts/serve.js        static server + single-user sync API
 scripts/store.js        file/PostgreSQL store for the single user
 .data/                  runtime user state (gitignored, not served)
@@ -239,7 +241,10 @@ screens; the single user is created automatically by the server:
 - **Server record** — when served over HTTP, the client calls `GET/PUT /api/state` and the
   server stores the user’s complete state (progress, SRS, stars, quiz totals, activity, language,
   theme, daily goal and grammar levels) with a revision counter.
-- **Default storage** — `.data/users/learner-1.json` (blocked from static serving).
+- **Default local storage** — `.data/users/learner-1.json` (blocked from static serving).
+- **Vercel production storage** — `api/state.js` stores the same record in the private Vercel
+  Blob store `n1-trilingual-state`; Vercel OIDC (`BLOB_STORE_ID`) is used, so no long-lived
+  Blob token is checked into the repository.
 - **Status** — the “Learner” chip in the top bar shows `Local only`, `Synced`, `Syncing`,
   `Offline` or `Key needed`. Open it for the user ID, storage backend, last sync, sync key and a
   manual **Sync now** button.
@@ -260,13 +265,15 @@ HTTP API to sync to.
 
 The Node server is stateless; the user record is the only persistent state.
 
-- **PostgreSQL (recommended for multiple servers):**
+- **PostgreSQL (recommended for self-hosted multiple servers):**
   ```bash
   npm install pg
   DATABASE_URL=postgres://user:pass@host/db HOST=0.0.0.0 npm start
   ```
   Every app-server instance connects to the same database. The server creates
   `trilingual_user (id, name, state jsonb, revision, created_at, updated_at)` automatically.
+- **Vercel:** `api/state.js` is a serverless function backed by the private Vercel Blob store
+  `n1-trilingual-state`. Blob state is shared by every function instance and deployment.
 - **Shared filesystem:** set `DATA_DIR` to the same mounted directory on every instance.
   This is simpler but relies on the filesystem supporting atomic renames and locking.
 - **Optional sync key:** set `SYNC_TOKEN=...`; the API then requires `x-sync-token`. The user
@@ -274,6 +281,16 @@ The Node server is stateless; the user record is the only persistent state.
 - **User identity:** override `USER_ID` and `USER_NAME` if you want a different single user.
 
 The state contains study progress, not credentials. It is not encrypted at rest by this app.
+
+## Deployment
+
+- **GitHub:** https://github.com/donchonyc/n1-trilingual
+- **Vercel production:** https://n1-trilingual.vercel.app
+- Vercel project: `dons-projects-8a740496/n1-trilingual`
+- Git integration: pushes to `main` trigger a Vercel production deployment.
+- Serverless API: `api/state.js` → private Vercel Blob `n1-trilingual-state`.
+- `vercel.json` configures the API function; `.vercelignore` excludes `.data`, `scripts`,
+  `node_modules` and local environment files from the deployment.
 
 ## Storage
 
