@@ -1,0 +1,6 @@
+.data
+node_modules
+.vercel
+scripts
+README.md
+package-lock.json

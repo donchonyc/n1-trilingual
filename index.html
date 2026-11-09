@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="JLPT N1–N3 grammar plus N1 vocabulary and reading, with Japanese, English and Korean explanations, quizzes and spaced review.">
+<title>N1–N3 三言語 — Grammar, Vocabulary &amp; Reading</title>
+<meta name="theme-color" content="#121318">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+<a class="skip" href="#main" data-i18n="a11ySkip">본문으로 건너뛰기</a>
+
+<header class="topbar">
+  <button class="brand" data-go="home" aria-label="N1–N3 三言語 home">
+    <span class="brand-mark">N1–3</span>
+    <span class="brand-text">
+      <strong>三言語</strong>
+      <small data-i18n="brandSub">N1–N3 文法 · N1 語彙</small>
+    </span>
+  </button>
+
+  <nav class="tabs" id="nav" aria-label="Main">
+    <button class="tab is-active" data-view="home" data-i18n="navHome">홈</button>
+    <button class="tab" data-view="grammar" data-i18n="navGrammar">문법</button>
+    <button class="tab" data-view="vocab" data-i18n="navVocab">어휘</button>
+    <button class="tab" data-view="quiz" data-i18n="navQuiz">퀴즈</button>
+    <button class="tab" data-view="review" data-i18n="navReview">복습</button>
+    <button class="tab" data-view="progress" data-i18n="navProgress">진도</button>
+  </nav>
+
+  <div class="topbar-actions">
+    <button class="user-chip" id="userChip" type="button" aria-haspopup="dialog" aria-controls="userScrim">
+      <span class="user-avatar" aria-hidden="true">L</span>
+      <span class="user-chip-copy">
+        <strong data-i18n="userName" id="userChipName">Learner</strong>
+        <small id="syncStatus" data-i18n="syncLocal" aria-live="polite">Local only</small>
+      </span>
+    </button>
+    <div class="lang" role="group" data-i18n-aria="language">
+      <button data-lang="ko" class="is-active">한국어</button>
+      <button data-lang="en">EN</button>
+      <button data-lang="ja">日本語</button>
+    </div>
+    <button class="icon-btn" id="themeBtn" data-i18n-aria="theme" aria-label="Theme">
+      <span aria-hidden="true">◑</span>
+    </button>
+  </div>
+</header>
+
+<main id="main">
+
+  <!-- ───────── HOME ───────── -->
+  <section class="view is-active" id="view-home" data-view="home">
+    <div class="hero">
+      <div class="hero-copy">
+        <p class="kicker"><span class="pulse"></span><span data-i18n="heroKicker">JLPT N1–N3 · 日本語</span></p>
+        <h1 data-i18n="heroTitle">한 문장을,<br>세 개의 언어로.</h1>
+        <p class="lead" data-i18n="heroLead">N1–N3 문법과 N1 어휘·독해를 일본어 · 영어 · 한국어로 나란히 익히고, 실제 시험 유형의 문제와 간격 반복으로 오래 기억하세요.</p>
+        <div class="hero-actions">
+          <button class="btn primary" data-go="quiz" data-i18n="heroStart">퀴즈 시작</button>
+          <button class="btn ghost" data-go="grammar" data-i18n="heroGrammar">문법 N1–N3</button>
+          <button class="btn ghost" data-go="vocab" data-i18n="heroVocab">어휘 4,144</button>
+        </div>
+      </div>
+      <div class="hero-art" aria-hidden="true">
+        <div class="ring r1"></div>
+        <div class="ring r2"></div>
+        <div class="hero-kanji">語</div>
+        <span class="float f1">文法</span>
+        <span class="float f2">語彙</span>
+        <span class="float f3">N1</span>
+      </div>
+    </div>
+
+    <section class="daily-goal" id="dailyGoalCard" aria-live="polite"></section>
+
+    <div class="stat-grid" id="homeStats"></div>
+
+    <div class="home-panels">
+      <section class="panel" id="dailyGrammar" aria-live="polite"></section>
+      <section class="panel" id="dailyWord" aria-live="polite"></section>
+    </div>
+
+    <section class="steps">
+      <h2 data-i18n="howTitle">이렇게 학습해요</h2>
+      <div class="step-grid">
+        <article class="step">
+          <span class="step-no">01</span>
+          <h3 data-i18n="how1t">세 언어로 읽기</h3>
+          <p data-i18n="how1d">모든 문법과 단어에 일본어 · 영어 · 한국어 설명과 예문이 함께 있습니다.</p>
+        </article>
+        <article class="step">
+          <span class="step-no">02</span>
+          <h3 data-i18n="how2t">빈칸 퀴즈</h3>
+          <p data-i18n="how2d">실제 예문의 빈칸을 채우며 문법의 쓰임과 어휘의 의미를 확인합니다.</p>
+        </article>
+        <article class="step">
+          <span class="step-no">03</span>
+          <h3 data-i18n="how3t">간격 반복</h3>
+          <p data-i18n="how3d">기억이 흐려질 때 다시 만나는 복습 카드로 오래 남깁니다.</p>
+        </article>
+      </div>
+    </section>
+  </section>
+
+  <!-- ───────── GRAMMAR ───────── -->
+  <section class="view" id="view-grammar" data-view="grammar">
+    <div class="view-head">
+      <div>
+        <h2 data-i18n="grammarTitle">N1–N3 문법</h2>
+        <p data-i18n="grammarLead">N1–N3 문법을 레벨별로 뜻 · 형태 · 예문과 함께 확인하세요.</p>
+      </div>
+      <div class="head-actions">
+        <div class="segmented level-seg" id="grammarLevel" role="group" data-i18n-aria="grammarLevel">
+          <button data-level="all" data-i18n="levelAll">전체</button>
+          <button data-level="N1" class="is-active">N1</button>
+          <button data-level="N2">N2</button>
+          <button data-level="N3">N3</button>
+        </div>
+        <button class="btn small primary" data-start-quiz="grammar" data-i18n="quizThisDeck">이 덱으로 퀴즈</button>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <label class="search">
+        <span class="search-icon" aria-hidden="true">⌕</span>
+        <input id="grammarSearch" type="search" data-i18n-ph="searchGrammar" autocomplete="off">
+      </label>
+      <select id="grammarStatus" class="select" data-i18n-aria="filterStatus"></select>
+      <select id="grammarSort" class="select" data-i18n-aria="sortLabel"></select>
+    </div>
+    <div class="chips" id="grammarTags"></div>
+    <p class="result-count" id="grammarCount"></p>
+    <div class="card-list" id="grammarList"></div>
+  </section>
+
+  <!-- ───────── VOCAB ───────── -->
+  <section class="view" id="view-vocab" data-view="vocab">
+    <div class="view-head">
+      <div>
+        <h2 data-i18n="vocabTitle">N1 어휘</h2>
+        <p data-i18n="vocabLead">735개의 N1 단어를 읽기 · 뜻 · 예문과 함께 익히세요.</p>
+      </div>
+      <div class="head-actions">
+        <div class="segmented" id="vocabMode" role="group" data-i18n-aria="viewMode">
+          <button data-mode="list" class="is-active" data-i18n="modeList">목록</button>
+          <button data-mode="cards" data-i18n="modeCards">카드</button>
+        </div>
+        <button class="btn small primary" data-start-quiz="vocab" data-i18n="quizThisDeck">이 덱으로 퀴즈</button>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <label class="search">
+        <span class="search-icon" aria-hidden="true">⌕</span>
+        <input id="vocabSearch" type="search" data-i18n-ph="searchVocab" autocomplete="off">
+      </label>
+      <select id="vocabStatus" class="select" data-i18n-aria="filterStatus"></select>
+      <select id="vocabSort" class="select" data-i18n-aria="sortLabel"></select>
+    </div>
+    <div class="chips" id="vocabTags"></div>
+    <p class="result-count" id="vocabCount"></p>
+    <div class="card-list" id="vocabList"></div>
+    <div class="flash-wrap" id="flashWrap" hidden>
+      <p class="empty-note" id="flashEmpty" hidden></p>
+      <div class="flashcard" id="flashcard" tabindex="0" role="button" data-i18n-aria="flipCard">
+        <div class="flash-front">
+          <span class="flash-tag" id="flashTag"></span>
+          <span class="flash-word" id="flashWord"></span>
+          <span class="flash-kana" id="flashKana"></span>
+          <span class="flash-hint" data-i18n="flipHint">눌러서 뜻 보기</span>
+        </div>
+        <div class="flash-back">
+          <div class="flash-back-word"><strong id="flashBackWord"></strong><span id="flashBackKana"></span></div>
+          <ul class="flash-meanings" id="flashMeanings"></ul>
+          <p class="flash-ex" id="flashEx"></p>
+          <p class="flash-tr" id="flashTr"></p>
+        </div>
+      </div>
+      <div class="flash-controls">
+        <button class="btn ghost" id="flashPrev" data-i18n="prev">이전</button>
+        <span class="flash-pos" id="flashPos"></span>
+        <button class="btn ghost" id="flashNext" data-i18n="next">다음</button>
+      </div>
+      <div class="flash-meta">
+        <button class="btn small ghost" id="flashSpeak" data-i18n="playAudio">듣기</button>
+        <button class="btn small" id="flashKnown"></button>
+        <button class="btn small ghost" id="flashStar"></button>
+      </div>
+      <div class="flash-dots" id="flashDots"></div>
+    </div>
+  </section>
+
+  <!-- ───────── QUIZ ───────── -->
+  <section class="view" id="view-quiz" data-view="quiz">
+    <div class="view-head">
+      <div>
+        <h2 data-i18n="quizTitle">퀴즈</h2>
+        <p data-i18n="quizLead">문법 빈칸, 단어 뜻, 읽기 문제가 섞여 출제됩니다.</p>
+      </div>
+    </div>
+
+    <div class="quiz-setup" id="quizSetup">
+      <div class="type-grid" id="quizTypes" role="radiogroup" data-i18n-aria="quizType">
+        <button class="type-card is-active" data-type="mixed" role="radio" aria-checked="true">
+          <span class="type-icon">✳</span>
+          <strong data-i18n="quizMixed">혼합</strong>
+          <small data-i18n="quizMixedD">문법 + 어휘</small>
+        </button>
+        <button class="type-card" data-type="grammar" role="radio" aria-checked="false">
+          <span class="type-icon">文</span>
+          <strong data-i18n="quizGrammar">문법</strong>
+          <small data-i18n="quizGrammarD">빈칸 채우기 · N1–N3</small>
+        </button>
+        <button class="type-card" data-type="vocab" role="radio" aria-checked="false">
+          <span class="type-icon">語</span>
+          <strong data-i18n="quizVocab">어휘</strong>
+          <small data-i18n="quizVocabD">읽기 · 문맥 · 의미</small>
+        </button>
+        <button class="type-card" data-type="reading" role="radio" aria-checked="false">
+          <span class="type-icon">読</span>
+          <strong data-i18n="quizReading">읽기</strong>
+          <small data-i18n="quizReadingD">지문 · 정보 검색</small>
+        </button>
+      </div>
+
+      <div class="setup-row" id="quizLevelRow">
+        <span class="setup-label" data-i18n="grammarLevel">문법 레벨</span>
+        <div class="segmented" id="quizLevel" role="group" data-i18n-aria="grammarLevel">
+          <button data-level="all" data-i18n="levelAll">전체</button>
+          <button data-level="N1" class="is-active">N1</button>
+          <button data-level="N2">N2</button>
+          <button data-level="N3">N3</button>
+        </div>
+      </div>
+
+      <div class="setup-row">
+        <span class="setup-label" data-i18n="questionCount">문제 수</span>
+        <div class="segmented" id="quizCount" role="group">
+          <button data-count="5">5</button>
+          <button data-count="10" class="is-active">10</button>
+          <button data-count="20">20</button>
+        </div>
+      </div>
+
+      <div class="setup-row">
+        <span class="setup-label" data-i18n="onlyCompare">출제 범위</span>
+        <label class="switch">
+          <input type="checkbox" id="quizWeakOnly">
+          <span class="switch-track"></span>
+          <span data-i18n="weakOnly">틀린 적 있는 항목 우선</span>
+        </label>
+      </div>
+
+      <button class="btn primary wide" id="quizStart" data-i18n="startQuiz">시작하기</button>
+      <p class="fineprint" data-i18n="quizHint">키보드 1–4로 답을 고르고 Enter로 다음 문제로 넘어갈 수 있어요.</p>
+    </div>
+
+    <div class="quiz-play" id="quizPlay" hidden>
+      <div class="quiz-top">
+        <span id="quizCounter" class="quiz-counter"></span>
+        <div class="quiz-bar"><span id="quizBarFill"></span></div>
+        <button class="btn small ghost" id="quizQuit" data-i18n="quit">그만두기</button>
+      </div>
+
+      <div class="q-card">
+        <p class="q-kind" id="quizKind"></p>
+        <div class="passage" id="quizPassage" hidden></div>
+        <p class="q-prompt" id="quizPrompt"></p>
+        <p class="q-sub" id="quizSub"></p>
+        <div class="options" id="quizOptions"></div>
+        <div class="feedback" id="quizFeedback" hidden>
+          <p class="fb-title" id="fbTitle"></p>
+          <p class="fb-body" id="fbBody"></p>
+          <button class="btn primary" id="quizNext" data-i18n="nextQuestion">다음 문제</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="quiz-done" id="quizDone" hidden>
+      <div class="score-ring" id="scoreRing"><span id="scoreValue">0%</span></div>
+      <h3 data-i18n="quizResult">퀴즈 완료</h3>
+      <p id="quizSummary" class="quiz-summary"></p>
+      <div class="wrong-list" id="quizWrongList"></div>
+      <div class="quiz-done-actions">
+        <button class="btn primary" id="quizAgain" data-i18n="retry">다시 풀기</button>
+        <button class="btn ghost" data-go="home" data-i18n="backHome">홈으로</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────── REVIEW ───────── -->
+  <section class="view" id="view-review" data-view="review">
+    <div class="view-head">
+      <div>
+        <h2 data-i18n="reviewTitle">복습</h2>
+        <p data-i18n="reviewLead">잊어버릴 즈음에 다시 만나는 카드입니다.</p>
+      </div>
+      <div class="review-pill" id="reviewPill"></div>
+    </div>
+
+    <div class="review-empty" id="reviewEmpty">
+      <div class="empty-mark">◎</div>
+      <h3 data-i18n="reviewEmpty">오늘 복습할 카드가 없어요</h3>
+      <p data-i18n="reviewEmptyD">새 카드를 미리 학습하거나 퀴즈를 풀어 복습 일정을 만들 수 있습니다.</p>
+      <div class="empty-actions">
+        <button class="btn primary" id="reviewNewBtn" data-i18n="reviewNewCards">새 카드 10장</button>
+        <button class="btn ghost" data-go="quiz" data-i18n="heroStart">퀴즈 시작</button>
+      </div>
+    </div>
+
+    <div class="review-stage" id="reviewStage" hidden>
+      <div class="review-progress"><span id="reviewCounter"></span><div class="quiz-bar"><span id="reviewBarFill"></span></div></div>
+      <div class="review-card" id="reviewCard">
+        <span class="review-kind" id="reviewKind"></span>
+        <div class="review-front" id="reviewFront"></div>
+        <div class="review-back" id="reviewBack" hidden></div>
+      </div>
+      <button class="btn primary wide" id="reviewReveal" data-i18n="reviewShow">답 보기</button>
+      <div class="rating-row" id="reviewRatings" hidden>
+        <button class="rating again" data-rate="again"><span>1</span><strong data-i18n="reviewAgain">모름</strong></button>
+        <button class="rating hard" data-rate="hard"><span>2</span><strong data-i18n="reviewHard">애매</strong></button>
+        <button class="rating good" data-rate="good"><span>3</span><strong data-i18n="reviewGood">알고 있음</strong></button>
+      </div>
+    </div>
+
+    <div class="review-empty" id="reviewComplete" hidden>
+      <div class="empty-mark">✓</div>
+      <h3 data-i18n="reviewDone">복습 완료</h3>
+      <p id="reviewDoneText"></p>
+      <div class="empty-actions">
+        <button class="btn primary" id="reviewMore" data-i18n="reviewNewCards">새 카드 10장</button>
+        <button class="btn ghost" data-go="progress" data-i18n="navProgress">진도</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────── PROGRESS ───────── -->
+  <section class="view" id="view-progress" data-view="progress">
+    <div class="view-head">
+      <div>
+        <h2 data-i18n="progressTitle">학습 진도</h2>
+        <p id="progressLead" data-i18n="progressLead">한 사용자의 학습 기록과 동기화 상태입니다.</p>
+      </div>
+      <button class="btn small ghost danger" id="resetBtn" data-i18n="progressReset">기록 초기화</button>
+    </div>
+
+    <section class="panel daily-progress" id="dailyProgress" aria-live="polite"></section>
+
+    <p class="section-label" data-i18n="progressLifetime">누적 기록</p>
+
+    <div class="stat-grid" id="progressStats"></div>
+
+    <div class="progress-grid">
+      <section class="panel">
+        <h3 data-i18n="progressDeckGrammar">문법</h3>
+        <div id="grammarBars"></div>
+      </section>
+      <section class="panel">
+        <h3 data-i18n="progressDeckVocab">어휘</h3>
+        <div id="vocabBars"></div>
+      </section>
+    </div>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h3 data-i18n="progressActivity">최근 14일</h3>
+        <span class="panel-note" id="progressStorageNote" data-i18n="savedLocally">브라우저에만 저장됩니다</span>
+      </div>
+      <div class="activity" id="activityChart"></div>
+    </section>
+
+    <section class="panel">
+      <h3 data-i18n="progressTipsTitle">다음에 할 일</h3>
+      <ul class="tips" id="progressTips"></ul>
+    </section>
+  </section>
+
+</main>
+
+<footer class="foot">
+  <span>N1–N3 三言語 · 文法・N1 語彙・読解</span>
+  <span data-i18n="footNote">Japanese · English · Korean</span>
+</footer>
+
+<div class="dialog-scrim" id="resetScrim" hidden>
+  <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="resetTitle" aria-describedby="resetBody">
+    <h2 id="resetTitle" data-i18n="progressReset">기록 초기화</h2>
+    <p id="resetBody" data-i18n="progressResetConfirm">학습 기록을 모두 지울까요? 이 작업은 되돌릴 수 없습니다.</p>
+    <div class="dialog-actions">
+      <button class="btn ghost" id="resetCancel" data-i18n="cancel">취소</button>
+      <button class="btn primary" id="resetConfirm" data-i18n="progressReset">기록 초기화</button>
+    </div>
+  </div>
+</div>
+
+<div class="dialog-scrim" id="userScrim" hidden>
+  <div class="dialog user-dialog" role="dialog" aria-modal="true" aria-labelledby="userTitle">
+    <h2 id="userTitle" data-i18n="userTitle">사용자</h2>
+    <div class="user-profile">
+      <span class="user-avatar large" aria-hidden="true">L</span>
+      <div class="user-profile-copy">
+        <strong data-i18n="userName" id="userNameDialog">Learner</strong>
+        <small id="userDialogId">learner-1</small>
+      </div>
+    </div>
+    <dl class="user-details">
+      <dt data-i18n="storageLabel">저장소</dt>
+      <dd id="userStorage">Browser</dd>
+      <dt data-i18n="lastSyncLabel">마지막 동기화</dt>
+      <dd id="userLastSync">—</dd>
+      <dt data-i18n="syncStatusLabel">상태</dt>
+      <dd id="userStatusText">Local only</dd>
+    </dl>
+    <div class="sync-key-row" id="syncKeyRow" hidden>
+      <label for="syncKeyInput" data-i18n="syncKey">동기화 키</label>
+      <div class="sync-key-controls">
+        <input id="syncKeyInput" type="password" autocomplete="off" spellcheck="false">
+        <button class="btn small" id="syncKeySave" data-i18n="save">저장</button>
+      </div>
+    </div>
+    <p class="dialog-note" data-i18n="userSyncNote">한 사용자의 학습 기록이 서버에 동기화됩니다.</p>
+    <div class="dialog-actions">
+      <button class="btn ghost" id="userClose" data-i18n="close">닫기</button>
+      <button class="btn primary" id="syncNowBtn" data-i18n="syncNow">지금 동기화</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<button class="fab" id="fabQuiz" data-i18n-aria="quickQuiz">
+  <span class="fab-icon" aria-hidden="true">▶</span>
+  <span class="fab-label" data-i18n="quickQuiz">퀴즈</span>
+</button>
+
+<script src="js/i18n.js"></script>
+<script src="js/data/grammar.js"></script>
+<script src="js/data/grammar-2.js"></script>
+<script src="js/data/grammar-n1.js"></script>
+<script src="js/data/grammar-n2.js"></script>
+<script src="js/data/grammar-n3.js"></script>
+<script src="js/data/vocab-1.js"></script>
+<script src="js/data/vocab-2.js"></script>
+<script src="js/data/vocab-3.js"></script>
+<script src="js/data/vocab-4.js"></script>
+<script src="js/data/vocab-5.js"></script>
+<script src="js/data/deck.js"></script>
+<script src="js/data/deck-full.js"></script>
+<script src="js/data/reading.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

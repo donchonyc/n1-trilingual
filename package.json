@@ -1,0 +1,16 @@
+{
+  "name": "n1-trilingual",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Interactive JLPT N1–N3 grammar, N1 vocabulary and reading study site in Japanese, English and Korean.",
+  "scripts": {
+    "start": "node scripts/serve.js",
+    "validate": "node scripts/validate.js"
+  },
+  "optionalDependencies": {
+    "pg": "^8.13.1"
+  },
+  "dependencies": {
+    "@vercel/blob": "^2.8.2"
+  }
+}
