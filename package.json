@@ -5,7 +5,11 @@
   "description": "Interactive JLPT N1–N3 grammar, N1 vocabulary and reading study site in Japanese, English and Korean.",
   "scripts": {
     "start": "node scripts/serve.js",
-    "validate": "node scripts/validate.js"
+    "validate": "node scripts/validate.js",
+    "security": "npm run validate && npm run security:scan && npm run security:api && npm run security:audit",
+    "security:scan": "node scripts/security/scan-secrets.js && node scripts/security/scan-code.js",
+    "security:api": "node scripts/security/api-auth.test.js",
+    "security:audit": "node scripts/security/run-audit.js"
   },
   "optionalDependencies": {
     "pg": "^8.13.1"

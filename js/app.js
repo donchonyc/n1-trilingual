@@ -12,6 +12,7 @@
   const GRAMMAR = (window.GRAMMAR || []).slice();
   const VOCAB = (window.VOCAB || []).slice();
   const READING = (window.READING || []).slice();
+  const ORDERING = (window.ORDERING || []).slice();
   GRAMMAR.forEach(function (g, i) { g.id = g.id || "g" + (i + 1); g.kind = "grammar"; g.level = g.level || "N1"; });
   VOCAB.forEach(function (v, i) { v.id = "v" + (i + 1); v.kind = "vocab"; });
 
@@ -1001,21 +1002,70 @@
     return out;
   }
 
+  function orderingPool(level) {
+    return ORDERING.filter(function (q) {
+      return !level || level === "all" || q.level === level;
+    });
+  }
+
+  function orderingQuestion(item) {
+    const options = shuffle(item.order.slice());
+    return {
+      kind: "order", id: item.id, level: item.level,
+      before: item.before, after: item.after, order: item.order,
+      options: options, correctIndex: options.indexOf(item.order[2]),
+      en: item.en, ko: item.ko
+    };
+  }
+
   function limitToWeak(pool) {
     const weak = pool.filter(function (x) { return isWeak(x.id); });
     return weak.length >= 4 ? weak : pool;
   }
 
+  /* Which form a grammar pattern must attach to. Distractors that need a
+     different form cannot connect to the same blank, so a question ends up
+     with exactly one grammatical option instead of four plausible-looking
+     ones. */
+  function attachClass(g) {
+    const f = String((g.formation && g.formation.ja) || "") + " " + String(g.pattern || "");
+    if (/意向形/.test(f)) return "volitional";
+    if (/命令形/.test(f)) return "imperative";
+    if (/ない形/.test(f)) return "nai";
+    if (/た形/.test(f)) return "ta";
+    if (/て形|て＋|て\+/.test(f)) return "te";
+    if (/辞書形/.test(f)) return "dict";
+    if (/ます形|ます語幹/.test(f)) return "masu";
+    if (/普通形/.test(f)) return "plain";
+    if (/な形容詞|な形/.test(f)) return "naadj";
+    if (/い形容詞|い形/.test(f)) return "iadj";
+    if (/名詞/.test(f)) return "noun";
+    if (/副詞/.test(f)) return "adverb";
+    return "any";
+  }
+
   function pickDistractors(g, pool, blankText) {
-    const cands = pool.filter(function (x) {
+    const cls = attachClass(g);
+    const base = pool.filter(function (x) {
       return x.core !== g.core && blankText.indexOf(x.core) === -1;
-    }).map(function (x) {
-      let score = Math.random() * 2;
-      if (x.tag === g.tag) score += 3;
-      if (x.core.charAt(0) === g.core.charAt(0)) score += 2;
-      if (Math.abs(x.core.length - g.core.length) <= 2) score += 1;
-      return { x: x, score: score };
-    }).sort(function (a, b) { return b.score - a.score; });
+    });
+    const rank = function (list, bonus) {
+      return list.map(function (x) {
+        let score = Math.random() * 2 + bonus;
+        if (x.tag === g.tag) score += 3;
+        if (x.core.charAt(0) === g.core.charAt(0)) score += 2;
+        if (Math.abs(x.core.length - g.core.length) <= 2) score += 1;
+        return { x: x, score: score };
+      }).sort(function (a, b) { return b.score - a.score; });
+    };
+    let cands;
+    if (cls === "any") {
+      cands = rank(base, 0);
+    } else {
+      const diff = base.filter(function (x) { return attachClass(x) !== cls; });
+      const same = base.filter(function (x) { return attachClass(x) === cls; });
+      cands = rank(diff, 10).concat(rank(same, 0));
+    }
     const out = [];
     const seen = {};
     for (let i = 0; i < cands.length && out.length < 3; i++) {
@@ -1257,7 +1307,8 @@
     const grammarLevel = opts.grammarLevel || ui.quiz.grammarLevel || "N1";
     let gPool = grammarPool(grammarLevel);
     let vPool = vocabPool();
-    if (weak) { gPool = limitToWeak(gPool); vPool = limitToWeak(vPool); }
+    let oPool = orderingPool(grammarLevel);
+    if (weak) { gPool = limitToWeak(gPool); vPool = limitToWeak(vPool); oPool = limitToWeak(oPool); }
 
     const questions = [];
     if (opts.focus) {
@@ -1270,10 +1321,24 @@
       }
     }
 
-    const wantR = type === "reading" ? count : type === "mixed" ? Math.min(count, Math.max(1, Math.round(count * 0.2))) : 0;
-    const rest = count - wantR;
-    const wantG = type === "grammar" ? rest : type === "vocab" || type === "reading" ? 0 : Math.ceil(rest / 2);
-    const wantV = type === "vocab" ? rest : type === "grammar" || type === "reading" ? 0 : rest - wantG;
+    let wantR = 0, wantG = 0, wantV = 0, wantO = 0;
+    if (type === "reading") wantR = count;
+    else if (type === "grammar") wantG = count;
+    else if (type === "vocab") wantV = count;
+    else if (type === "order") wantO = count;
+    else {
+      wantR = Math.min(count, Math.max(1, Math.round(count * 0.2)));
+      const rest = count - wantR;
+      wantO = Math.min(rest, Math.max(1, Math.round(rest * 0.25)));
+      const left = rest - wantO;
+      wantG = Math.ceil(left / 2);
+      wantV = left - wantG;
+    }
+    if (wantO > oPool.length) {
+      const short = wantO - oPool.length;
+      wantO = oPool.length;
+      if (type === "mixed") wantV += short;
+    }
 
     const gUsed = {};
     const vUsed = {};
@@ -1312,6 +1377,14 @@
       }
     }
 
+    if (wantO > 0) {
+      const oShuffled = shuffle(oPool);
+      for (let i = 0; i < oShuffled.length &&
+        questions.filter(function (q) { return q.kind === "order"; }).length < wantO; i++) {
+        questions.push(orderingQuestion(oShuffled[i]));
+      }
+    }
+
     let list = questions;
     if (type === "mixed") list = shuffle(list);
     return list.slice(0, count);
@@ -1346,7 +1419,7 @@
       $$("#quizCount button").forEach(function (b) {
         b.classList.toggle("is-active", Number(b.dataset.count) === ui.quiz.count);
       });
-      const showLevel = ui.quiz.type === "grammar" || ui.quiz.type === "mixed";
+      const showLevel = ui.quiz.type === "grammar" || ui.quiz.type === "order" || ui.quiz.type === "mixed";
       $("#quizLevelRow").hidden = !showLevel;
       $$("#quizLevel button").forEach(function (b) {
         b.classList.toggle("is-active", b.dataset.level === ui.quiz.grammarLevel);
@@ -1364,13 +1437,25 @@
     }
   }
 
+  function orderPrompt(q) {
+    let slots = "";
+    for (let i = 0; i < 4; i++) {
+      const star = i === 2;
+      slots += '<span class="order-slot' + (star ? " is-star" : "") + '">' +
+        (star ? "★" : "＿＿") + "</span>";
+    }
+    return '<span class="order-line"><span class="order-fixed">' + esc(q.before) + "</span>" +
+      slots + '<span class="order-fixed">' + esc(q.after) + "</span></span>";
+  }
+
   function renderQuizPlay() {
     const q = quiz.questions[quiz.index];
     if (!q) return;
     $("#quizCounter").textContent = t("quizOf", { n: quiz.index + 1, total: quiz.questions.length });
     $("#quizBarFill").style.width = ((quiz.index + 1) / quiz.questions.length * 100) + "%";
     $("#quizKind").textContent = q.kind === "reading" ? t("quizReading") :
-      q.kind === "grammar" ? t("quizGrammar") : t("quizVocab");
+      q.kind === "grammar" ? t("quizGrammar") :
+        q.kind === "order" ? t("quizOrder") : t("quizVocab");
 
     const prompt = $("#quizPrompt");
     const passage = $("#quizPassage");
@@ -1386,6 +1471,11 @@
       passage.innerHTML = "";
       prompt.innerHTML = esc(q.blank).replace("＿＿＿", '<span class="blank">?</span>');
       $("#quizSub").textContent = t("blankQuestion");
+    } else if (q.kind === "order") {
+      passage.hidden = true;
+      passage.innerHTML = "";
+      prompt.innerHTML = orderPrompt(q);
+      $("#quizSub").textContent = t("orderQuestion");
     } else if (q.type === "reading") {
       passage.hidden = true;
       passage.innerHTML = "";
@@ -1411,7 +1501,7 @@
 
     const opts = $("#quizOptions");
     opts.innerHTML = q.options.map(function (opt, i) {
-      const label = q.kind === "grammar" || q.kind === "reading" ? opt : vocabLabel(opt, q.type);
+      const label = q.kind === "grammar" || q.kind === "reading" || q.kind === "order" ? opt : vocabLabel(opt, q.type);
       return '<button class="option" data-i="' + i + '"><span class="opt-no">' + (i + 1) +
         '</span><span class="jp">' + esc(label) + "</span></button>";
     }).join("");
@@ -1454,6 +1544,11 @@
       explain = "<span class='jp'>" + esc(q.options[q.answerIndex]) + "</span><br>" +
         esc(q.explain[state.lang] || q.explain.en);
       answerText = q.options[q.answerIndex];
+    } else if (q.kind === "order") {
+      const full = q.before + q.order.join("") + q.after;
+      const tr = state.lang === "en" ? q.en : state.lang === "ko" ? q.ko : "";
+      explain = "<span class='jp'>" + esc(full) + "</span>" + (tr ? "<br>" + esc(tr) : "");
+      answerText = q.options[q.correctIndex];
     } else {
       const vocabHead = q.item.kana !== q.item.kanji ?
         esc(q.item.kanji) + "（" + esc(q.item.kana) + "）" : esc(q.item.kanji);
@@ -1484,7 +1579,7 @@
       save();
     } else {
       // SRS + global stats
-      const id = q.item.id;
+      const id = q.kind === "order" ? q.id : q.item.id;
       const s = state.srs[id] || { box: 0, due: 0, seen: 0, right: 0, wrong: 0 };
       s.seen = (s.seen || 0) + 1;
       if (ok) {
@@ -1512,6 +1607,9 @@
       } else if (q.kind === "reading") {
         promptText = q.question;
         answerText = q.options[q.answerIndex];
+      } else if (q.kind === "order") {
+        promptText = q.before + " ＿＿ ＿＿ ★ ＿＿ ＿＿ " + q.after;
+        answerText = q.options[q.correctIndex];
       } else {
         promptText = q.type === "reading" ? maskedReadingWord(q.item) :
           q.type === "kanji" ? q.item.kana :
@@ -1808,7 +1906,7 @@
     $$("#quizTypes .type-card small").forEach(function (small) {
       const card = small.closest(".type-card");
       if (!card) return;
-      const key = { mixed: "quizMixedD", grammar: "quizGrammarD", vocab: "quizVocabD", reading: "quizReadingD" }[card.dataset.type];
+      const key = { mixed: "quizMixedD", grammar: "quizGrammarD", order: "quizOrderD", vocab: "quizVocabD", reading: "quizReadingD" }[card.dataset.type];
       if (key) small.textContent = t(key);
     });
     fillSelects();

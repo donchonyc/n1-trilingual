@@ -34,8 +34,13 @@ server-side user** across browsers, devices and app-server instances.
   (文脈規定), and Japanese definition → word (言い換え). Options are always Japanese; the
   explanation appears only after answering, in the selected UI language.
 - **Grammar quizzes** — a sentence with a blank, four same-category grammar choices
-  (文法形式の判断) from the selected level, so the options look like the real exam rather than
-  random patterns.
+  (文法形式の判断) from the selected level. Distractors are picked from patterns that need a
+  different connecting form where possible, so one option connects to the blank and the others
+  do not.
+- **Sentence ordering** — 24 original 文の組み立て ★ questions (N1–N3) built from everyday
+  situations. Each question supplies the surrounding clause, four unpunctuated chunks and a ★
+  slot; only one chunk can occupy the ★. The answer explanation shows the full sentence with
+  English and Korean translations.
 - **Reading comprehension** — 5 original N1 passages and 11 questions in exam formats:
   short passages (内容理解), information retrieval (情報検索), integrated understanding
   (統合理解), and text grammar (文章の文法). The question and options are Japanese; the
@@ -59,7 +64,7 @@ server-side user** across browsers, devices and app-server instances.
 | 言い換え類義 | ✅ Japanese definition → word |
 | 用法 | — not yet (needs several usage sentences per word) |
 | 文法形式の判断 | ✅ sentence blank with same-category grammar choices |
-| 文の組み立て | — not yet (star/ordering questions) |
+| 文の組み立て | ✅ 24 original ★ ordering questions (N1–N3) |
 | 文章の文法 | ✅ one text-grammar passage with three blanks |
 | 読解 | ✅ short passage, information retrieval, integrated understanding |
 
@@ -129,6 +134,7 @@ js/data/vocab-5.js      four-character idioms 151–160
 js/data/deck.js         N1 high-frequency deck import (575 words)
 js/data/deck-full.js    full N1 deck bulk import (3,409 machine-assisted words)
 js/data/reading.js      N1 reading passages & questions (original)
+js/data/ordering.js     文の組み立て ★ questions (original, N1–N3)
 js/app.js               navigation, rendering, quiz engine, SRS, storage
 api/state.js            Vercel serverless state API (private Vercel Blob)
 vercel.json             Vercel function/config
@@ -136,6 +142,8 @@ scripts/serve.js        static server + single-user sync API
 scripts/store.js        file/PostgreSQL store for the single user
 .data/                  runtime user state (gitignored, not served)
 scripts/validate.js     dataset integrity checker
+scripts/security/       secret scan, static checks, API auth test, audit summary
+.github/workflows/      CI: security checks and CodeQL
 ```
 
 ## Data format
@@ -194,6 +202,24 @@ Add a reading set:
 }
 ```
 
+Add a 文の組み立て question:
+
+```js
+{
+  id: "ord-n3-09",
+  level: "N3",
+  before: "友だちに聞いたら、",      // fixed context before the four chunks
+  after: "そうだ。",                 // fixed context after the four chunks
+  order: ["あの店の", "ケーキは", "とても", "おいしい"], // correct order
+  en: "...",                        // translation of the full sentence
+  ko: "..."
+}
+```
+
+The ★ is always the third chunk, so `order[2]` is the correct option. Chunks must not contain
+`。`/`？`/`！`; put punctuation in `before` or `after` so the answer options cannot reveal which
+chunk is last.
+
 Run the checker after editing:
 
 ```bash
@@ -201,9 +227,10 @@ npm run validate
 ```
 
 It verifies counts (596 grammar: 250 N1 / 163 N2 / 183 N3; 4,144 vocabulary; 5 reading passages;
-11 reading questions), ids, required translations, Hangul/Japanese/Latin sanity, duplicate
-words (same headword + reading), tag coverage, quiz blankability and distractor availability,
-reading answer indices, and i18n key parity across the three languages.
+11 reading questions; 24 ordering questions), ids, required translations, Hangul/Japanese/Latin
+sanity, duplicate words (same headword + reading), tag coverage, quiz blankability and distractor
+availability, reading answer indices, ordering chunks without sentence punctuation, and i18n key
+parity across the three languages.
 
 ## Deck import
 
@@ -291,6 +318,47 @@ The state contains study progress, not credentials. It is not encrypted at rest 
 - Serverless API: `api/state.js` → private Vercel Blob `n1-trilingual-state`.
 - `vercel.json` configures the API function; `.vercelignore` excludes `.data`, `scripts`,
   `node_modules` and local environment files from the deployment.
+
+## Security pipeline
+
+The repository ships a defensive CI pipeline. It is intentionally limited to detection and
+regression testing; it does not generate exploits or probe third-party systems.
+
+Run the local checks with:
+
+```bash
+npm run security        # validation + secret/static scans + API auth tests + dependency audit
+npm run security:scan   # secret scan and static security invariants only
+npm run security:api    # start a temporary server and test API authorization
+npm run security:audit  # npm audit report and summary
+```
+
+What runs in GitHub Actions:
+
+- **Validation** — `npm run validate` checks dataset integrity, including the ordering questions.
+- **Secret scan** — scans repository files that are not gitignored for high-confidence credentials
+  and fails if an environment file is committed. Local `.env` files are warnings, not failures.
+- **Static scan** — rejects dynamic code execution, runtime shell access and raw HTML sinks, and
+  asserts that API security invariants remain in place: constant-time token comparison, body-size
+  limits, authorization before handlers, state-object validation and path containment.
+- **API auth regression** — starts `scripts/serve.js` with a temporary data directory and a test
+  `SYNC_TOKEN`, then checks 401/200 behavior, invalid and array state, method allow-lists, path
+  traversal and oversized bodies. It also exercises the production `api/state.js` handler with a
+  mocked Blob store, so the Vercel endpoint's authorization and validation stay covered.
+- **Dependency audit** — reports high and critical `npm audit` findings in the job summary and
+  uploads the JSON report. Critical findings fail the build; high findings are reported but
+  non-blocking so existing transitive issues do not hide new regressions. Set
+  `AUDIT_FAIL_ON_HIGH=1` locally to make high findings blocking.
+- **Dependency review** — on pull requests, rejects newly introduced dependencies with high or
+  critical advisories.
+- **CodeQL** — analyzes JavaScript/TypeScript with the `security-extended` query pack and uploads
+  results to GitHub code scanning.
+- **Dependabot** — opens weekly grouped updates for npm and GitHub Actions.
+
+The workflow files are `.github/workflows/security.yml` and `.github/workflows/codeql.yml`.
+CodeQL code scanning is free for this public repository. For a complete gate, enable branch
+protection on `main` and require the `Security` and `CodeQL` checks before merging. See
+[SECURITY.md](SECURITY.md) for reporting and scope.
 
 ## Storage
 

@@ -4,3 +4,5 @@ node_modules
 scripts
 README.md
 package-lock.json
+security-audit.json
+.env*

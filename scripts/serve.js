@@ -113,6 +113,7 @@ async function handleAPI(req, res, urlPath, store) {
     return true;
   }
 
+  res.setHeader("Allow", "GET, PUT");
   sendJSON(res, 405, { error: "method_not_allowed" });
   return true;
 }
@@ -120,7 +121,14 @@ async function handleAPI(req, res, urlPath, store) {
 async function main() {
   const store = await createStore();
   const server = http.createServer((req, res) => {
-    const urlPath = decodeURIComponent((req.url || "/").split("?")[0]);
+    let urlPath;
+    try {
+      urlPath = decodeURIComponent((req.url || "/").split("?")[0]);
+    } catch (e) {
+      res.writeHead(400, { "Content-Type": "text/plain; charset=utf-8" });
+      res.end("Bad request");
+      return;
+    }
 
     if (urlPath === "/api" || urlPath.startsWith("/api/")) {
       handleAPI(req, res, urlPath, store).catch((e) => {

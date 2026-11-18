@@ -11,11 +11,12 @@ vm.createContext(sandbox);
 ["js/i18n.js", "js/data/grammar.js", "js/data/grammar-2.js",
  "js/data/grammar-n1.js", "js/data/grammar-n2.js", "js/data/grammar-n3.js",
  "js/data/vocab-1.js", "js/data/vocab-2.js", "js/data/vocab-3.js",
- "js/data/vocab-4.js", "js/data/vocab-5.js", "js/data/deck.js", "js/data/deck-full.js", "js/data/reading.js"].forEach((f) => {
+ "js/data/vocab-4.js", "js/data/vocab-5.js", "js/data/deck.js", "js/data/deck-full.js",
+ "js/data/reading.js", "js/data/ordering.js"].forEach((f) => {
   vm.runInContext(fs.readFileSync(path.join(root, f), "utf8"), sandbox, { filename: f });
 });
 
-const { GRAMMAR = [], VOCAB = [], READING = [], I18N, TAGS, tagLabel } = sandbox.window;
+const { GRAMMAR = [], VOCAB = [], READING = [], ORDERING = [], I18N, TAGS, tagLabel } = sandbox.window;
 const errors = [];
 const warn = [];
 const check = (cond, msg) => { if (!cond) errors.push(msg); };
@@ -153,6 +154,28 @@ READING.forEach((set, i) => {
 });
 console.log(`Reading: ${READING.length} passages, ${rqTotal} questions`);
 check(rqTotal === 11, `expected 11 reading questions, found ${rqTotal}`);
+
+/* sentence ordering (文の組み立て) */
+const oIds = new Set();
+check(ORDERING.length >= 24, `expected at least 24 ordering questions, found ${ORDERING.length}`);
+ORDERING.forEach((q, i) => {
+  const tag = q.id || `o#${i + 1}`;
+  check(has(q.id) && !oIds.has(q.id), `${tag}: missing/duplicate id`);
+  oIds.add(q.id);
+  check(["N1", "N2", "N3"].includes(q.level), `${tag}: invalid level ${q.level}`);
+  check(has(q.before) && has(q.after), `${tag}: before/after context`);
+  check(Array.isArray(q.order) && q.order.length === 4, `${tag}: needs 4 chunks`);
+  const chunks = q.order || [];
+  chunks.forEach((chunk, j) => {
+    check(has(chunk), `${tag}: chunk ${j + 1} empty`);
+    check(!/[。！？!?]/.test(chunk), `${tag}: chunk ${j + 1} contains sentence punctuation`);
+  });
+  check(new Set(chunks).size === chunks.length, `${tag}: duplicate chunk`);
+  check(has(q.en) && /[A-Za-z]/.test(q.en), `${tag}: en translation`);
+  check(has(q.ko) && hangul.test(q.ko), `${tag}: ko translation`);
+  check(!hangul.test(q.before + q.after + chunks.join("")), `${tag}: Japanese sentence contains Korean`);
+});
+console.log(`Ordering: ${ORDERING.length} questions`);
 
 /* tag coverage */
 const gTags = new Set(GRAMMAR.map((g) => g.tag));

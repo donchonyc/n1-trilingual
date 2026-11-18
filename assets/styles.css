@@ -1424,6 +1424,22 @@ details.more summary:hover { color: var(--on-surface); }
   margin: 0 3px;
 }
 .q-prompt .q-word { font-size: 1.15em; font-weight: 500; }
+.q-prompt .order-line { display: inline; }
+.q-prompt .order-fixed { white-space: pre-wrap; }
+.q-prompt .order-slot {
+  display: inline-block;
+  min-width: 56px;
+  margin: 0 4px;
+  padding: 0 2px;
+  border-bottom: 2px solid var(--outline);
+  color: var(--on-surface-variant);
+  text-align: center;
+}
+.q-prompt .order-slot.is-star {
+  border-bottom-color: var(--primary);
+  color: var(--primary);
+  font-weight: 700;
+}
 .q-sub { font-size: 14px; line-height: 20px; color: var(--on-surface-variant); margin-bottom: 16px; }
 
 .passage {
